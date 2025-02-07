@@ -1,0 +1,34 @@
+name: Build and Release API
+
+on:
+  push:
+    tags:
+      - 'v*' # Dispara quando um novo tag versão é criado, ex: v1.0.0
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      - name: Instalar dependências
+        run: npm install --omit=dev # Evita instalar dependências de dev
+
+      - name: Compilar a API
+        run: npm run build # Gera a pasta 'dist'
+
+      - name: Criar o arquivo ZIP
+        run: |
+          mkdir release
+          cp package.json release/
+          cp -r dist release/
+          cd release && zip -r api-release.zip . && cd ..
+
+      - name: Criar Release no GitHub
+        uses: softprops/action-gh-release@v1
+        with:
+          files: release/api-release.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
